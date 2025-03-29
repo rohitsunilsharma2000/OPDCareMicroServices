@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <audio id="notifSound" src="https://www.myinstants.com/media/sounds/ting-sound.mp3" preload="auto"></audio>
+
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+    #chatUI, #loginForm { display: none; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: scroll; background: #f9f9f9; }
+    .message { padding: 5px 10px; margin: 5px 0; border-radius: 5px; }
+    .message.you { background: #daf1da; text-align: right; }
+    .message.other { background: #e9e9ff; }
+    .input { display: flex; margin-top: 10px; }
+    .input input { flex: 1; padding: 10px; }
+    .input button { padding: 10px; }
+    #status { margin-bottom: 10px; font-weight: bold; }
+    .message.system {
+      font-size: 12px;
+      text-align: center;
+      margin: 8px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+<h2>🟢 Live Chat with Spring Boot + STOMP</h2>
+
+<!-- Login Form -->
+<div id="loginForm">
+  <h3>Login</h3>
+  <input type="email" id="loginEmail" placeholder="Email" /><br><br>
+  <input type="password" id="loginPassword" placeholder="Password" /><br><br>
+  <button onclick="login()">Login</button>
+  <div id="loginStatus"></div>
+</div>
+
+<!-- Chat UI -->
+<div id="chatUI">
+  <div id="status">Connecting...</div>
+  <div id="chat"></div>
+
+  <div class="input">
+    <input id="messageInput" type="text" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+    const stompEndpoint = "http://localhost:8080/chat";
+    const topic = "/topic/public";
+    const sendPath = "/app/chat.send";
+    let stompClient = null;
+    let sender = "";
+    let receiver = "agent@example.com"; // hardcoded for now
+    let token = "";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (localStorage.getItem("token")) {
+        initChatFromLocalStorage();
+      } else {
+        document.getElementById("loginForm").style.display = "block";
+      }
+    });
+
+    function login() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem("token", "Bearer " + data.token);
+          localStorage.setItem("sender", data.email || email);
+          document.getElementById("loginForm").style.display = "none";
+          initChatFromLocalStorage();
+        } else {
+          document.getElementById("loginStatus").innerText = "Login failed.";
+        }
+      })
+      .catch(() => document.getElementById("loginStatus").innerText = "Login error.");
+    }
+
+    function initChatFromLocalStorage() {
+      sender = localStorage.getItem("sender");
+      token = localStorage.getItem("token");
+      document.getElementById("chatUI").style.display = "block";
+      connect();
+    }
+
+    function connect() {
+      const socket = new SockJS(stompEndpoint);
+      stompClient = Stomp.over(socket);
+      stompClient.connect({ Authorization: token }, function (frame) {
+        document.getElementById("status").innerText = "🟢 Connected";
+
+<!--        stompClient.subscribe(topic, function (message) {-->
+<!--          const body = JSON.parse(message.body);-->
+<!--          renderMessage(body, body.sender === sender ? "you" : "other");-->
+<!--          showNotification(body.content);-->
+<!--        });-->
+
+        stompClient.subscribe(topic, function (message) {
+          const body = JSON.parse(message.body);
+          renderMessage(body, body.sender === sender ? "you" : "other");
+
+          // ✅ Trigger browser notification
+          if (body.sender !== sender) {
+            showNotification(body.content, body.sender);
+          }
+        });
+
+        stompClient.send("/app/chat.newUser", {}, JSON.stringify({ sender: sender, type: "JOIN" }));
+
+        fetch("/api/chat/history?user=" + sender, {
+          headers: { Authorization: token }
+        })
+        .then(res => res.json())
+        .then(messages => {
+          messages.forEach(msg => {
+            renderMessage(msg, msg.sender === sender ? "you" : "other");
+          });
+        });
+      }, function (error) {
+        document.getElementById("status").innerText = "🔴 Disconnected";
+        console.error("STOMP error", error);
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const message = input.value.trim();
+      if (!message || !stompClient) return;
+
+      const payload = {
+        sender: sender,
+        receiver: receiver,
+        content: message,
+        timestamp: new Date().toISOString(),
+        type: "CHAT"
+      };
+
+      stompClient.send(sendPath, {}, JSON.stringify(payload));
+      input.value = "";
+    }
+
+    function renderMessage(msg, type) {
+      const chat = document.getElementById("chat");
+      const div = document.createElement("div");
+      div.className = `message ${type}`;
+      div.innerText = `${msg.sender}: ${msg.content}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+<!--    function showNotification(text) {-->
+<!--      if (document.hidden) {-->
+<!--        const notif = new Notification("💬 New Message", { body: text });-->
+<!--        notif.onclick = () => window.focus();-->
+<!--      }-->
+<!--    }-->
+
+<!--  function showNotification(text, fromUser) {-->
+<!--    if (document.hidden) {-->
+<!--      if (Notification.permission === "granted") {-->
+<!--        const notif = new Notification("💬 New message from " + fromUser, {-->
+<!--          body: text,-->
+<!--          icon: "https://cdn-icons-png.flaticon.com/512/3106/3106921.png", // optional icon-->
+<!--          tag: "live-chat-notif"-->
+<!--        });-->
+
+<!--        notif.onclick = () => {-->
+<!--          window.focus();-->
+<!--          notif.close();-->
+<!--        };-->
+<!--      }-->
+<!--    }-->
+<!--  }-->
+
+function showNotification(text, fromUser) {
+  const audio = document.getElementById("notifSound");
+
+  if (Notification.permission === "granted") {
+    // Play sound for new messages
+    audio.play().catch(err => console.warn("Sound play blocked:", err));
+
+    if (document.hidden) {
+      const notif = new Notification("💬 Message from " + fromUser, {
+        body: text,
+        icon: "https://cdn-icons-png.flaticon.com/512/3106/3106921.png", // optional icon
+        tag: "live-chat-notif"
+      });
+
+      notif.onclick = () => {
+        window.focus();
+        notif.close();
+      };
+    }
+  }
+}
+window.addEventListener("focus", () => {
+  console.log("✅ All messages seen");
+  // Optional: You could call an API to mark messages as read
+});
+
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    const seenMsg = document.createElement("div");
+    seenMsg.className = "message system";
+    seenMsg.style.color = "gray";
+    seenMsg.innerText = "✔ Messages seen";
+    document.getElementById("chat").appendChild(seenMsg);
+  }
+});
+
+
+
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  </script>
+
+</body>
+</html>
