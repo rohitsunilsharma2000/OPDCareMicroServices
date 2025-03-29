@@ -27,15 +27,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserService userService;
 
-    /**
-     * Registers a new user with encoded password and role.
-     */
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        log.info("Registering user: {}", request.getEmail());
-        User user = userService.registerUser(request);
-        return ResponseEntity.ok("User registered with ID: " + user.getId());
-    }
+
 
     /**
      * Authenticates a user and returns a JWT token with user info.
@@ -72,15 +64,5 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 
-    /**
-     * Updates profile info of logged-in user.
-     */
-    @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(Principal principal, @RequestBody UserDto userDto) {
-        String email = principal.getName();
-        log.info("Updating profile for: {}", email);
-        User updated = userService.updateUserProfile(email, userDto);
-        return ResponseEntity.ok(updated);
-    }
 }
 
