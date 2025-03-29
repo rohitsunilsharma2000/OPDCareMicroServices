@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TuringLLMTuningSystem {
+public class OPDCareSystem {
 
     public static void main ( String[] args ) {
-        SpringApplication.run(TuringLLMTuningSystem.class , args);
+        SpringApplication.run(OPDCareSystem.class , args);
     }
 }
