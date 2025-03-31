@@ -376,9 +376,9 @@ support-ticket-livechat-email\src
 ```java
 package com.example.supportservice.config;
 
-import com.example.supportservice.filter.JwtAuthenticationFilter;
-import com.example.supportservice.service.CustomUserDetailsService;
-import com.example.supportservice.service.JwtService;
+import com.mycompany.useraccess.filter.JwtAuthenticationFilter;
+import com.mycompany.useraccess.service.CustomUserDetailsService;
+import com.mycompany.useraccess.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -402,7 +402,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtService jwtService;
+    private final JwtService jwtService;
 
     @Autowired
     private final CustomUserDetailsService userDetailsService;
@@ -423,67 +423,67 @@ public class SecurityConfig {
      * @throws Exception
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
-      http.cors()
-              .and()
-              .csrf()
-              .disable()
-              .authorizeHttpRequests()
-              .requestMatchers("/api/auth/**").permitAll()
-              .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-              .requestMatchers("/admin/**").hasRole("ADMIN")
-              .requestMatchers("/agent/**").hasAnyRole("ADMIN", "AGENT")
-              .requestMatchers("/customer/**").hasAnyRole("ADMIN", "CUSTOMER")
-              .requestMatchers("/chat/**").permitAll()
-              .anyRequest().authenticated()
-              .and()
-              .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-              .exceptionHandling()
-              .accessDeniedHandler((request, response, accessDeniedException) -> {
+    public SecurityFilterChain securityFilterChain ( HttpSecurity http , JwtAuthenticationFilter jwtAuthenticationFilter ) throws Exception {
+        http.cors()
+            .and()
+            .csrf()
+            .disable()
+            .authorizeHttpRequests()
+            .requestMatchers("/api/auth/**").permitAll()
+            .requestMatchers("/v3/api-docs/**" , "/swagger-ui/**").permitAll()
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            .requestMatchers("/agent/**").hasAnyRole("ADMIN" , "AGENT")
+            .requestMatchers("/customer/**").hasAnyRole("ADMIN" , "CUSTOMER")
+            .requestMatchers("/chat/**").permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .addFilterBefore(jwtAuthenticationFilter , UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling()
+            .accessDeniedHandler(( request , response , accessDeniedException ) -> {
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 response.setContentType("application/json");
                 response.getWriter().write("{\"timestamp\":\"" + LocalDateTime.now() + "\","
-                        + "\"message\":\"Access Denied\","
-                        + "\"status\":403,"
-                        + "\"error\":\"Forbidden\","
-                        + "\"path\":\"" + request.getRequestURI() + "\"}");
-              })
-              .authenticationEntryPoint((request, response, authException) -> {
+                                                   + "\"message\":\"Access Denied\","
+                                                   + "\"status\":403,"
+                                                   + "\"error\":\"Forbidden\","
+                                                   + "\"path\":\"" + request.getRequestURI() + "\"}");
+            })
+            .authenticationEntryPoint(( request , response , authException ) -> {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType("application/json");
                 response.getWriter().write("{\"timestamp\":\"" + LocalDateTime.now() + "\","
-                        + "\"message\":\"Unauthorized\","
-                        + "\"status\":401,"
-                        + "\"error\":\"Unauthorized\","
-                        + "\"path\":\"" + request.getRequestURI() + "\"}");
-              });
-      return http.build();
+                                                   + "\"message\":\"Unauthorized\","
+                                                   + "\"status\":401,"
+                                                   + "\"error\":\"Unauthorized\","
+                                                   + "\"path\":\"" + request.getRequestURI() + "\"}");
+            });
+        return http.build();
     }
 
-  /**
-   * Provides the custom JWT authentication filter.
-   *
-   * @param userDetailsService Service for loading user details
-   * @return Configured JWTAuthenticationFilter
-   */
-  @Bean
-  public JwtAuthenticationFilter jwtAuthenticationFilter(UserDetailsService userDetailsService) {
-    return new JwtAuthenticationFilter(jwtService, () -> userDetailsService);
+    /**
+     * Provides the custom JWT authentication filter.
+     *
+     * @param userDetailsService Service for loading user details
+     * @return Configured JWTAuthenticationFilter
+     */
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter ( UserDetailsService userDetailsService ) {
+        return new JwtAuthenticationFilter(jwtService , () -> userDetailsService);
     }
 
-  /**
-   * Configures the authentication provider.
-   *
-   * @param userDetailsService Service for loading user details
-   * @return Configured AuthenticationProvider
-   */
-  @Bean
-  public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-    provider.setUserDetailsService(userDetailsService);
-    provider.setPasswordEncoder(passwordEncoder());
-    return provider;
-  }
+    /**
+     * Configures the authentication provider.
+     *
+     * @param userDetailsService Service for loading user details
+     * @return Configured AuthenticationProvider
+     */
+    @Bean
+    public AuthenticationProvider authenticationProvider ( UserDetailsService userDetailsService ) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
     /**
      * Configures the password encoder using BCrypt.
@@ -491,8 +491,8 @@ public class SecurityConfig {
      * @return Configured PasswordEncoder
      */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-      return new BCryptPasswordEncoder();
+    public PasswordEncoder passwordEncoder () {
+        return new BCryptPasswordEncoder();
     }
 
     /**
@@ -503,8 +503,8 @@ public class SecurityConfig {
      * @throws Exception
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-      return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager ( AuthenticationConfiguration authenticationConfiguration ) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     /**
@@ -513,17 +513,17 @@ public class SecurityConfig {
      * @return Configured CorsConfigurationSource
      */
     @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-      var configuration = new org.springframework.web.cors.CorsConfiguration();
-      configuration.setAllowedOriginPatterns(List.of("*"));
-      configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-      configuration.setAllowedHeaders(List.of("*"));
-      configuration.setAllowCredentials(true);
-      configuration.setMaxAge(3600L);
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource () {
+        var configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET" , "POST" , "PUT" , "DELETE" , "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
-      var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-      source.registerCorsConfiguration("/**", configuration);
-      return source;
+        var source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**" , configuration);
+        return source;
     }
 }
 ```
@@ -766,8 +766,8 @@ public class ChatService {
 ```java
 package com.example.supportservice.service;
 
-import com.example.supportservice.model.User;
-import com.example.supportservice.repository.UserRepository;
+import com.mycompany.useraccess.model.User;
+import com.mycompany.useraccess.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -788,24 +788,25 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
 
-  /**
-   * Loads user details by email.
-   *
-   * @param email The user's email.
-   * @return UserDetails object containing user information.
-   * @throws UsernameNotFoundException if user is not found.
-   */
-  @Override
-  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-    User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    /**
+     * Loads user details by email.
+     *
+     * @param email The user's email.
+     * @return UserDetails object containing user information.
+     * @throws UsernameNotFoundException if user is not found.
+     */
+    @Override
+    public UserDetails loadUserByUsername ( String email ) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                                  .orElseThrow(
+                                          () -> new UsernameNotFoundException("User not found with email: " + email));
 
-    return org.springframework.security.core.userdetails.User.builder()
-            .username(user.getEmail())
-            .password(user.getPassword())
-            .roles(user.getRole().toString())
-            .disabled(!user.isEnabled())
-            .build();
+        return org.springframework.security.core.userdetails.User.builder()
+                                                                 .username(user.getEmail())
+                                                                 .password(user.getPassword())
+                                                                 .roles(user.getRole().toString())
+                                                                 .disabled(!user.isEnabled())
+                                                                 .build();
     }
 }
 ```
@@ -819,7 +820,7 @@ package com.example.supportservice.service;
 
 import com.example.supportservice.model.Ticket;
 import com.example.supportservice.enums.TicketStatus;
-import com.example.supportservice.model.User;
+import com.mycompany.useraccess.model.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -843,26 +844,26 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class EmailService {
 
-  private final JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-  /**
-   * Sends an email when a ticket's status is updated.
-   *
-   * @param ticket    The updated ticket.
-   * @param oldStatus The previous status of the ticket.
-   */
-  public void sendTicketStatusChangedNotification(Ticket ticket, TicketStatus oldStatus) {
-    try {
-      String to = ticket.getAssignedTo();
-      String subject = "Ticket Status Updated: #" + ticket.getId();
-      String body = buildStatusUpdateEmail(ticket, oldStatus);
+    /**
+     * Sends an email when a ticket's status is updated.
+     *
+     * @param ticket    The updated ticket.
+     * @param oldStatus The previous status of the ticket.
+     */
+    public void sendTicketStatusChangedNotification ( Ticket ticket , TicketStatus oldStatus ) {
+        try {
+            String to = ticket.getAssignedTo();
+            String subject = "Ticket Status Updated: #" + ticket.getId();
+            String body = buildStatusUpdateEmail(ticket , oldStatus);
 
-      sendEmail(to, subject, body);
-      log.info("Status change email sent for ticket ID: {}", ticket.getId());
-    } catch (Exception ex) {
-      log.error("Failed to send status change email for ticket ID {}: {}", ticket.getId(), ex.getMessage());
+            sendEmail(to , subject , body);
+            log.info("Status change email sent for ticket ID: {}" , ticket.getId());
+        } catch (Exception ex) {
+            log.error("Failed to send status change email for ticket ID {}: {}" , ticket.getId() , ex.getMessage());
+        }
     }
-  }
 
     /**
      * Sends an email to the given recipient.
@@ -872,37 +873,37 @@ public class EmailService {
      * @param body    The email body.
      * @throws MessagingException if an error occurs while sending the email.
      */
-    void sendEmail(String to, String subject, String body) throws MessagingException {
-      MimeMessage message = mailSender.createMimeMessage();
-      MimeMessageHelper helper = new MimeMessageHelper(message, true);
-      helper.setTo(to);
-      helper.setSubject(subject);
-      helper.setText(body, true); // true = HTML
-      mailSender.send(message);
+    void sendEmail ( String to , String subject , String body ) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message , true);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body , true); // true = HTML
+        mailSender.send(message);
     }
 
-  /**
-   * Builds the body of a ticket status update email.
-   *
-   * @param ticket    The updated ticket.
-   * @param oldStatus The previous status of the ticket.
-   * @return A formatted email body.
-   */
-  private String buildStatusUpdateEmail(Ticket ticket, TicketStatus oldStatus) {
-    return String.format(
-            "<p>Dear Agent,</p>" +
-                    "<p>The status of ticket <strong>#%d</strong> has changed from <strong>%s</strong> to <strong>%s</strong>.</p>" +
-                    "<p><strong>Subject:</strong> %s</p>" +
-                    "<p><strong>Description:</strong> %s</p>" +
-                    "<p>Updated at: %s</p>" +
-                    "<br/><p>Regards,<br/>Support Team</p>",
-            ticket.getId(),
-            oldStatus,
-            ticket.getStatus(),
-            ticket.getSubject(),
-            ticket.getDescription(),
-            ticket.getUpdatedAt()
-    );
+    /**
+     * Builds the body of a ticket status update email.
+     *
+     * @param ticket    The updated ticket.
+     * @param oldStatus The previous status of the ticket.
+     * @return A formatted email body.
+     */
+    private String buildStatusUpdateEmail ( Ticket ticket , TicketStatus oldStatus ) {
+        return String.format(
+                "<p>Dear Agent,</p>" +
+                        "<p>The status of ticket <strong>#%d</strong> has changed from <strong>%s</strong> to <strong>%s</strong>.</p>" +
+                        "<p><strong>Subject:</strong> %s</p>" +
+                        "<p><strong>Description:</strong> %s</p>" +
+                        "<p>Updated at: %s</p>" +
+                        "<br/><p>Regards,<br/>Support Team</p>" ,
+                ticket.getId() ,
+                oldStatus ,
+                ticket.getStatus() ,
+                ticket.getSubject() ,
+                ticket.getDescription() ,
+                ticket.getUpdatedAt()
+        );
     }
 
     /**
@@ -911,64 +912,65 @@ public class EmailService {
      * @param ticket The ticket that was assigned.
      * @param agent  The agent to whom the ticket was assigned.
      */
-    public void sendTicketAssignedNotification(Ticket ticket, User agent) {
-      try {
-        String to = agent.getEmail();
-        String subject = "New Ticket Assigned: #" + ticket.getId();
-        String body = String.format(
-                "<p>Dear %s,</p>" +
-                        "<p>A new ticket has been assigned to you.</p>" +
-                        "<p><strong>Subject:</strong> %s</p>" +
-                        "<p><strong>Description:</strong> %s</p>" +
-                        "<p><strong>Status:</strong> %s</p>" +
-                        "<p><strong>Priority:</strong> %s</p>" +
-                        "<p>Created at: %s</p>" +
-                        "<br/><p>Regards,<br/>Support System</p>",
-                agent.getUsername(),
-                ticket.getSubject(),
-                ticket.getDescription(),
-                ticket.getStatus(),
-                ticket.getPriority(),
-                ticket.getCreatedAt()
-        );
+    public void sendTicketAssignedNotification ( Ticket ticket , User agent ) {
+        try {
+            String to = agent.getEmail();
+            String subject = "New Ticket Assigned: #" + ticket.getId();
+            String body = String.format(
+                    "<p>Dear %s,</p>" +
+                            "<p>A new ticket has been assigned to you.</p>" +
+                            "<p><strong>Subject:</strong> %s</p>" +
+                            "<p><strong>Description:</strong> %s</p>" +
+                            "<p><strong>Status:</strong> %s</p>" +
+                            "<p><strong>Priority:</strong> %s</p>" +
+                            "<p>Created at: %s</p>" +
+                            "<br/><p>Regards,<br/>Support System</p>" ,
+                    agent.getUsername() ,
+                    ticket.getSubject() ,
+                    ticket.getDescription() ,
+                    ticket.getStatus() ,
+                    ticket.getPriority() ,
+                    ticket.getCreatedAt()
+            );
 
-        sendEmail(to, subject, body);
-        log.info("Ticket assigned notification sent to agent {} for ticket {}", agent.getEmail(), ticket.getId());
-      } catch (Exception e) {
-        log.error("Failed to send ticket assigned notification for ticket {}: {}", ticket.getId(), e.getMessage());
-      }
+            sendEmail(to , subject , body);
+            log.info("Ticket assigned notification sent to agent {} for ticket {}" , agent.getEmail() , ticket.getId());
+        } catch (Exception e) {
+            log.error("Failed to send ticket assigned notification for ticket {}: {}" , ticket.getId() ,
+                      e.getMessage());
+        }
     }
 
-  /**
-   * Sends an email to the support team or default support email when a new ticket is created.
-   *
-   * @param ticket The newly created ticket.
-   */
-  public void sendTicketCreatedNotification(Ticket ticket) {
-    try {
-      String to = "support-team@example.com"; // Replace with actual support email or notify admin
-      String subject = "New Ticket Created: #" + ticket.getId();
-      String body = String.format(
-              "<p>Hello Support Team,</p>" +
-                      "<p>A new ticket has been submitted.</p>" +
-                      "<p><strong>Subject:</strong> %s</p>" +
-                      "<p><strong>Description:</strong> %s</p>" +
-                      "<p><strong>Status:</strong> %s</p>" +
-                      "<p><strong>Priority:</strong> %s</p>" +
-                      "<p>Created at: %s</p>" +
-                      "<br/><p>Regards,<br/>Support Portal</p>",
-              ticket.getSubject(),
-              ticket.getDescription(),
-              ticket.getStatus(),
-              ticket.getPriority(),
-              ticket.getCreatedAt()
-      );
+    /**
+     * Sends an email to the support team or default support email when a new ticket is created.
+     *
+     * @param ticket The newly created ticket.
+     */
+    public void sendTicketCreatedNotification ( Ticket ticket ) {
+        try {
+            String to = "support-team@example.com"; // Replace with actual support email or notify admin
+            String subject = "New Ticket Created: #" + ticket.getId();
+            String body = String.format(
+                    "<p>Hello Support Team,</p>" +
+                            "<p>A new ticket has been submitted.</p>" +
+                            "<p><strong>Subject:</strong> %s</p>" +
+                            "<p><strong>Description:</strong> %s</p>" +
+                            "<p><strong>Status:</strong> %s</p>" +
+                            "<p><strong>Priority:</strong> %s</p>" +
+                            "<p>Created at: %s</p>" +
+                            "<br/><p>Regards,<br/>Support Portal</p>" ,
+                    ticket.getSubject() ,
+                    ticket.getDescription() ,
+                    ticket.getStatus() ,
+                    ticket.getPriority() ,
+                    ticket.getCreatedAt()
+            );
 
-      sendEmail(to, subject, body);
-      log.info("Ticket created notification sent for ticket {}", ticket.getId());
-    } catch (Exception e) {
-      log.error("Failed to send ticket created notification for ticket {}: {}", ticket.getId(), e.getMessage());
-    }
+            sendEmail(to , subject , body);
+            log.info("Ticket created notification sent for ticket {}" , ticket.getId());
+        } catch (Exception e) {
+            log.error("Failed to send ticket created notification for ticket {}: {}" , ticket.getId() , e.getMessage());
+        }
     }
 }
 ```
@@ -980,7 +982,7 @@ public class EmailService {
 ```java
 package com.example.supportservice.service;
 
-import com.example.supportservice.utils.JwtUtil;
+import com.mycompany.useraccess.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -999,7 +1001,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JwtService {
 
-  private final JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
     /**
      * Validates the JWT token based on the username.
@@ -1008,32 +1010,32 @@ public class JwtService {
      * @param username The username to validate the token against.
      * @return true if valid, false otherwise.
      */
-    public boolean validateToken(String token, String username) {
-      return jwtUtil.validateToken(token, username);
+    public boolean validateToken ( String token , String username ) {
+        return jwtUtil.validateToken(token , username);
     }
 
-  /**
-   * Extracts the username from the token.
-   *
-   * @param token The JWT token.
-   * @return The username.
-   */
-  public String extractUsername(String token) {
-    return jwtUtil.extractUsername(token);
-  }
+    /**
+     * Extracts the username from the token.
+     *
+     * @param token The JWT token.
+     * @return The username.
+     */
+    public String extractUsername ( String token ) {
+        return jwtUtil.extractUsername(token);
+    }
 
-  /**
-   * Checks if the token is valid based on the user details.
-   *
-   * @param token        The JWT token.
-   * @param userDetails The user details to validate against.
-   * @return true if valid, false otherwise.
-   */
-  public boolean isTokenValid(String token, UserDetails userDetails) {
-    final String username = extractUsername(token);
-    return username != null &&
-            username.equals(userDetails.getUsername()) &&
-            !jwtUtil.isTokenExpired(token);
+    /**
+     * Checks if the token is valid based on the user details.
+     *
+     * @param token        The JWT token.
+     * @param userDetails The user details to validate against.
+     * @return true if valid, false otherwise.
+     */
+    public boolean isTokenValid ( String token , UserDetails userDetails ) {
+        final String username = extractUsername(token);
+        return username != null &&
+                username.equals(userDetails.getUsername()) &&
+                !jwtUtil.isTokenExpired(token);
     }
 }
 ```
@@ -1048,6 +1050,7 @@ package com.example.supportservice.service;
 import com.example.supportservice.enums.TicketStatus;
 import com.example.supportservice.model.Ticket;
 import com.example.supportservice.repository.TicketRepository;
+import com.mycompany.useraccess.service.EmailService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -1070,8 +1073,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TicketReminderScheduler {
 
-  private final TicketRepository ticketRepository;
-  private final EmailService emailService;
+    private final TicketRepository ticketRepository;
+    private final EmailService emailService;
 
     /**
      * Scheduled task that sends reminder emails for pending tickets older than 2 days.
@@ -1080,15 +1083,16 @@ public class TicketReminderScheduler {
      * @throws MessagingException if an error occurs while sending the email.
      */
     @Scheduled(cron = "0 0 10 * * ?") // Every day at 10 AM
-    public void sendReminders() throws MessagingException {
-      List<Ticket> pendingTickets = ticketRepository.findByStatusAndUpdatedAtBefore(TicketStatus.PENDING, LocalDateTime.now().minusDays(2));
-      for (Ticket ticket : pendingTickets) {
-        emailService.sendEmail(
-                ticket.getAssignedTo(),
-                "📌 Reminder: Ticket #" + ticket.getId() + " Still Open",
-                "This ticket has been open since " + ticket.getUpdatedAt() + ". Please take action."
-        );
-      }
+    public void sendReminders () throws MessagingException {
+        List<Ticket> pendingTickets = ticketRepository.findByStatusAndUpdatedAtBefore(TicketStatus.PENDING ,
+                                                                                      LocalDateTime.now().minusDays(2));
+        for (Ticket ticket : pendingTickets) {
+            emailService.sendEmail(
+                    ticket.getAssignedTo() ,
+                    "📌 Reminder: Ticket #" + ticket.getId() + " Still Open" ,
+                    "This ticket has been open since " + ticket.getUpdatedAt() + ". Please take action."
+            );
+        }
     }
 }
 ```
@@ -1102,16 +1106,16 @@ package com.example.supportservice.service;
 
 import com.example.supportservice.dto.TicketRequest;
 import com.example.supportservice.dto.TicketResponse;
-import com.example.supportservice.enums.Role;
+import com.mycompany.useraccess.enums.Role;
 import com.example.supportservice.enums.TicketStatus;
-import com.example.supportservice.exception.ResourceNotFoundException;
-import com.example.supportservice.exception.TicketNotFoundException;
+import com.mycompany.useraccess.exception.ResourceNotFoundException;
 import com.example.supportservice.model.Attachment;
 import com.example.supportservice.model.Ticket;
-import com.example.supportservice.model.User;
+import com.mycompany.useraccess.model.User;
 import com.example.supportservice.repository.TicketRepository;
-import com.example.supportservice.repository.UserRepository;
-import com.example.supportservice.utils.FileStorageUtil;
+import com.mycompany.useraccess.repository.UserRepository;
+import com.mycompany.useraccess.service.EmailService;
+import com.mycompany.useraccess.utils.FileStorageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -1143,71 +1147,73 @@ public class TicketService {
   private final UserRepository userRepository;
   private final EmailService emailService;
 
-    /**
-     * Creates a new support ticket.
-     *
-     * @param request The ticket request containing details about the ticket.
-     * @return The created ticket response.
-     */
-    public TicketResponse createTicket(TicketRequest request) {
-      log.info("Creating new ticket with subject: {}", request.getSubject());
+  /**
+   * Creates a new support ticket.
+   *
+   * @param request The ticket request containing details about the ticket.
+   * @return The created ticket response.
+   */
+  public TicketResponse createTicket ( TicketRequest request ) {
+    log.info("Creating new ticket with subject: {}" , request.getSubject());
 
-      Ticket ticket = Ticket.builder()
-              .subject(request.getSubject())
-              .description(request.getDescription())
-              .priority(request.getPriority())
-              .status(TicketStatus.OPEN)
-              .createdAt(LocalDateTime.now())
-              .updatedAt(LocalDateTime.now())
-              .build();
+    Ticket ticket = Ticket.builder()
+                          .subject(request.getSubject())
+                          .description(request.getDescription())
+                          .priority(request.getPriority())
+                          .status(TicketStatus.OPEN)
+                          .createdAt(LocalDateTime.now())
+                          .updatedAt(LocalDateTime.now())
+                          .build();
 
-      ticketRepository.save(ticket);
+    ticketRepository.save(ticket);
 
-      // Send notification
-      emailService.sendTicketCreatedNotification(ticket);
+    // Send notification
+    emailService.sendTicketCreatedNotification(ticket);
 
-      return TicketResponse.from(ticket);
-    }
+    return TicketResponse.from(ticket);
+  }
 
-    /**
-     * Fetches a ticket by its ID.
-     *
-     * @param id The ID of the ticket.
-     * @return The ticket response.
-     */
-    public TicketResponse getTicketById(Long id) {
-      log.info("Fetching ticket with ID: {}", id);
+  /**
+   * Fetches a ticket by its ID.
+   *
+   * @param id The ID of the ticket.
+   * @return The ticket response.
+   */
+  public TicketResponse getTicketById ( Long id ) {
+    log.info("Fetching ticket with ID: {}" , id);
 
-      Ticket ticket = ticketRepository.findById(id)
-              .orElseThrow(() -> new TicketNotFoundException("Ticket not found with ID: " + id));
-      return TicketResponse.from(ticket);
-    }
+    Ticket ticket = ticketRepository.findById(id)
+                                    .orElseThrow(
+                                            () -> new TicketNotFoundException("Ticket not found with ID: " + id));
+    return TicketResponse.from(ticket);
+  }
 
-    /**
-     * Uploads an attachment to a ticket.
-     *
-     * @param ticketId The ID of the ticket to attach the file to.
-     * @param file     The file to be uploaded.
-     */
-    public void saveAttachment(Long ticketId, MultipartFile file) {
-      log.info("Uploading attachment for ticket ID: {}", ticketId);
+  /**
+   * Uploads an attachment to a ticket.
+   *
+   * @param ticketId The ID of the ticket to attach the file to.
+   * @param file     The file to be uploaded.
+   */
+  public void saveAttachment ( Long ticketId , MultipartFile file ) {
+    log.info("Uploading attachment for ticket ID: {}" , ticketId);
 
-      Ticket ticket = ticketRepository.findById(ticketId)
-              .orElseThrow(() -> new TicketNotFoundException("Ticket not found with ID " + ticketId));
+    Ticket ticket = ticketRepository.findById(ticketId)
+                                    .orElseThrow(() -> new TicketNotFoundException(
+                                            "Ticket not found with ID " + ticketId));
 
-      String fileUrl = fileStorageUtil.save(file);
+    String fileUrl = fileStorageUtil.save(file);
 
-      Attachment attachment = Attachment.builder()
-              .fileName(file.getOriginalFilename())
-              .fileType(file.getContentType())
-              .fileUrl(fileUrl)
-              .ticket(ticket)
-              .build();
+    Attachment attachment = Attachment.builder()
+                                      .fileName(file.getOriginalFilename())
+                                      .fileType(file.getContentType())
+                                      .fileUrl(fileUrl)
+                                      .ticket(ticket)
+                                      .build();
 
-      ticket.getAttachments().add(attachment);
-      ticketRepository.save(ticket);
-      log.info("Attachment uploaded successfully.");
-    }
+    ticket.getAttachments().add(attachment);
+    ticketRepository.save(ticket);
+    log.info("Attachment uploaded successfully.");
+  }
 
   /**
    * Updates the details of an existing ticket.
@@ -1216,11 +1222,12 @@ public class TicketService {
    * @param request The updated ticket request.
    * @return The updated ticket response.
    */
-  public TicketResponse updateTicket(Long id, TicketRequest request) {
+  public TicketResponse updateTicket ( Long id , TicketRequest request ) {
     Ticket ticket = ticketRepository.findById(id)
-            .orElseThrow(() -> new TicketNotFoundException("Ticket not found with ID " + id));
+                                    .orElseThrow(
+                                            () -> new TicketNotFoundException("Ticket not found with ID " + id));
 
-    log.info("Updating ticket ID: {}", id);
+    log.info("Updating ticket ID: {}" , id);
 
     TicketStatus oldStatus = ticket.getStatus();
 
@@ -1235,7 +1242,7 @@ public class TicketService {
 
     // Send notification if status changed
     if (!oldStatus.equals(ticket.getStatus())) {
-      emailService.sendTicketStatusChangedNotification(ticket, oldStatus);
+      emailService.sendTicketStatusChangedNotification(ticket , oldStatus);
     }
 
     return TicketResponse.from(ticket);
@@ -1246,9 +1253,9 @@ public class TicketService {
    *
    * @return A list of ticket responses.
    */
-  public List<Ticket> getAllTickets() {
+  public List<Ticket> getAllTickets () {
     log.info("Fetching all tickets");
-    return ticketRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    return ticketRepository.findAll(Sort.by(Sort.Direction.DESC , "createdAt"));
   }
 
   /**
@@ -1257,45 +1264,45 @@ public class TicketService {
    * @param ticketId The ID of the ticket to be assigned.
    * @param agentId  The ID of the agent to assign the ticket to.
    */
-  public void assignTicketToAgent(Long ticketId, Long agentId) {
+  public void assignTicketToAgent ( Long ticketId , Long agentId ) {
     Ticket ticket = ticketRepository.findById(ticketId)
-            .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+                                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
     User agent = userRepository.findById(agentId)
-            .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
+                               .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
 
     if (agent.getRole() != Role.AGENT) {
       throw new IllegalArgumentException("User is not an agent");
     }
 
-    log.info("Assigning ticket ID {} to agent ID {}", ticketId, agentId);
+    log.info("Assigning ticket ID {} to agent ID {}" , ticketId , agentId);
     ticket.setAssignedAgent(agent);
     ticket.setUpdatedAt(LocalDateTime.now());
     ticketRepository.save(ticket);
 
-    emailService.sendTicketAssignedNotification(ticket, agent);
+    emailService.sendTicketAssignedNotification(ticket , agent);
+  }
+
+  /**
+   * Auto-assigns a ticket to a random available agent.
+   *
+   * @param ticketId The ID of the ticket to be assigned.
+   * @return The ID of the assigned agent.
+   */
+  public Long autoAssignAgent ( Long ticketId ) {
+    List<User> agents = userRepository.findByRole(Role.AGENT);
+
+    if (agents.isEmpty()) {
+      log.warn("No agents available for auto-assignment");
+      throw new RuntimeException("No agents available for assignment");
     }
 
-    /**
-     * Auto-assigns a ticket to a random available agent.
-     *
-     * @param ticketId The ID of the ticket to be assigned.
-     * @return The ID of the assigned agent.
-     */
-    public Long autoAssignAgent(Long ticketId) {
-      List<User> agents = userRepository.findByRole(Role.AGENT);
+    User chosen = agents.get(new Random().nextInt(agents.size()));
 
-      if (agents.isEmpty()) {
-        log.warn("No agents available for auto-assignment");
-        throw new RuntimeException("No agents available for assignment");
-      }
+    log.info("Auto-assigning ticket {} to agent {}" , ticketId , chosen.getEmail());
+    assignTicketToAgent(ticketId , chosen.getId());
 
-      User chosen = agents.get(new Random().nextInt(agents.size()));
-
-      log.info("Auto-assigning ticket {} to agent {}", ticketId, chosen.getEmail());
-      assignTicketToAgent(ticketId, chosen.getId());
-
-      return chosen.getId();
-    }
+    return chosen.getId();
+  }
 }
 ```
 
@@ -1311,9 +1318,9 @@ public class TicketService {
 ```java
 package com.example.supportservice.config;
 
-import com.example.supportservice.filter.JwtAuthenticationFilter;
-import com.example.supportservice.service.CustomUserDetailsService;
-import com.example.supportservice.service.JwtService;
+import com.mycompany.useraccess.filter.JwtAuthenticationFilter;
+import com.mycompany.useraccess.service.CustomUserDetailsService;
+import com.mycompany.useraccess.service.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -1337,55 +1344,55 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 class SecurityConfigTest {
 
-  @Autowired
-  private SecurityFilterChain securityFilterChain;
+    @Autowired
+    private SecurityFilterChain securityFilterChain;
 
-  @Autowired
-  private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-  @Autowired
-  private AuthenticationProvider authenticationProvider;
+    @Autowired
+    private AuthenticationProvider authenticationProvider;
 
-  @Autowired
-  private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-  @Autowired
-  private CorsConfigurationSource corsConfigurationSource;
+    @Autowired
+    private CorsConfigurationSource corsConfigurationSource;
 
-  @Autowired
-  private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-  @Autowired
-  private JwtService jwtService;
+    @Autowired
+    private JwtService jwtService;
 
-  @Autowired
-  private CustomUserDetailsService userDetailsService;
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
-  /**
-   * Test that all security beans are loaded correctly.
-   */
-  @Test
-  void testSecurityBeansLoaded() {
-    assertThat(securityFilterChain).isNotNull();
-    assertThat(authenticationManager).isNotNull();
-    assertThat(authenticationProvider).isNotNull();
-    assertThat(passwordEncoder).isNotNull();
-    assertThat(corsConfigurationSource).isNotNull();
-    assertThat(jwtAuthenticationFilter).isNotNull();
-    assertThat(jwtService).isNotNull();
-    assertThat(userDetailsService).isNotNull();
-  }
+    /**
+     * Test that all security beans are loaded correctly.
+     */
+    @Test
+    void testSecurityBeansLoaded () {
+        assertThat(securityFilterChain).isNotNull();
+        assertThat(authenticationManager).isNotNull();
+        assertThat(authenticationProvider).isNotNull();
+        assertThat(passwordEncoder).isNotNull();
+        assertThat(corsConfigurationSource).isNotNull();
+        assertThat(jwtAuthenticationFilter).isNotNull();
+        assertThat(jwtService).isNotNull();
+        assertThat(userDetailsService).isNotNull();
+    }
 
-  /**
-   * Test the password encoding functionality.
-   */
-  @Test
-  void testPasswordEncoding() {
-    String rawPassword = "mySecret123";
-    String encoded = passwordEncoder.encode(rawPassword);
+    /**
+     * Test the password encoding functionality.
+     */
+    @Test
+    void testPasswordEncoding () {
+        String rawPassword = "mySecret123";
+        String encoded = passwordEncoder.encode(rawPassword);
 
-    assertThat(passwordEncoder.matches(rawPassword, encoded)).isTrue();
-  }
+        assertThat(passwordEncoder.matches(rawPassword , encoded)).isTrue();
+    }
 }
 ```
 
@@ -1430,7 +1437,7 @@ class WebSocketConfigTest {
 ```java
 package com.example.supportservice.config;
 
-import com.example.supportservice.service.JwtService;
+import com.mycompany.useraccess.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1461,88 +1468,88 @@ import static org.mockito.Mockito.*;
  */
 public class WebSocketJwtInterceptorTest {
 
-  private JwtService jwtService;
-  private UserDetailsService userDetailsService;
-  private WebSocketJwtInterceptor interceptor;
+    private JwtService jwtService;
+    private UserDetailsService userDetailsService;
+    private WebSocketJwtInterceptor interceptor;
 
-  @BeforeEach
-  void setUp() {
-    jwtService = mock(JwtService.class);
-    userDetailsService = mock(UserDetailsService.class);
-    interceptor = new WebSocketJwtInterceptor(jwtService, userDetailsService);
-  }
+    @BeforeEach
+    void setUp () {
+        jwtService = mock(JwtService.class);
+        userDetailsService = mock(UserDetailsService.class);
+        interceptor = new WebSocketJwtInterceptor(jwtService , userDetailsService);
+    }
 
-  /**
-   * Test that a valid JWT token correctly authenticates the user in the WebSocket handshake.
-   */
-  @Test
-  void testBeforeHandshake_withValidJwt_shouldAuthenticateUser() throws Exception {
-    String jwtToken = "mock-jwt-token";
-    String email = "user@example.com";
+    /**
+     * Test that a valid JWT token correctly authenticates the user in the WebSocket handshake.
+     */
+    @Test
+    void testBeforeHandshake_withValidJwt_shouldAuthenticateUser () throws Exception {
+        String jwtToken = "mock-jwt-token";
+        String email = "user@example.com";
 
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-    when(servletRequest.getHeader("Authorization")).thenReturn("Bearer " + jwtToken);
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("Authorization")).thenReturn("Bearer " + jwtToken);
 
-    ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+        ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 
-    UserDetails userDetails = new User(email, "password", Collections.emptyList());
-    when(jwtService.extractUsername(jwtToken)).thenReturn(email);
-    when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
-    when(jwtService.isTokenValid(jwtToken, userDetails)).thenReturn(true);
+        UserDetails userDetails = new User(email , "password" , Collections.emptyList());
+        when(jwtService.extractUsername(jwtToken)).thenReturn(email);
+        when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
+        when(jwtService.isTokenValid(jwtToken , userDetails)).thenReturn(true);
 
-    Map<String, Object> attributes = new HashMap<>();
-    WebSocketHandler wsHandler = mock(WebSocketHandler.class);
+        Map<String, Object> attributes = new HashMap<>();
+        WebSocketHandler wsHandler = mock(WebSocketHandler.class);
 
-    boolean result = interceptor.beforeHandshake(request, null, wsHandler, attributes);
+        boolean result = interceptor.beforeHandshake(request , null , wsHandler , attributes);
 
-    assertTrue(result);
-    var auth = SecurityContextHolder.getContext().getAuthentication();
-    assertTrue(auth instanceof UsernamePasswordAuthenticationToken);
-    assertTrue(auth.isAuthenticated());
-    assertTrue(auth.getName().equals(email));
-  }
+        assertTrue(result);
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        assertTrue(auth instanceof UsernamePasswordAuthenticationToken);
+        assertTrue(auth.isAuthenticated());
+        assertTrue(auth.getName().equals(email));
+    }
 
-  /**
-   * Test behavior when an invalid JWT token is provided during the WebSocket handshake.
-   */
-  @Test
-  void testBeforeHandshake_withInvalidJwt_shouldNotAuthenticate() throws Exception {
-    String jwtToken = "invalid-jwt";
-    String email = "user@example.com";
+    /**
+     * Test behavior when an invalid JWT token is provided during the WebSocket handshake.
+     */
+    @Test
+    void testBeforeHandshake_withInvalidJwt_shouldNotAuthenticate () throws Exception {
+        String jwtToken = "invalid-jwt";
+        String email = "user@example.com";
 
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-    when(servletRequest.getHeader("Authorization")).thenReturn("Bearer " + jwtToken);
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("Authorization")).thenReturn("Bearer " + jwtToken);
 
-    ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
-    UserDetails userDetails = new User(email, "password", Collections.emptyList());
+        ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+        UserDetails userDetails = new User(email , "password" , Collections.emptyList());
 
-    when(jwtService.extractUsername(jwtToken)).thenReturn(email);
-    when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
-    when(jwtService.isTokenValid(jwtToken, userDetails)).thenReturn(false);
+        when(jwtService.extractUsername(jwtToken)).thenReturn(email);
+        when(userDetailsService.loadUserByUsername(email)).thenReturn(userDetails);
+        when(jwtService.isTokenValid(jwtToken , userDetails)).thenReturn(false);
 
-    Map<String, Object> attributes = new HashMap<>();
+        Map<String, Object> attributes = new HashMap<>();
 
-    boolean result = interceptor.beforeHandshake(request, null, mock(WebSocketHandler.class), attributes);
+        boolean result = interceptor.beforeHandshake(request , null , mock(WebSocketHandler.class) , attributes);
 
-    assertTrue(result);
-    assertTrue(SecurityContextHolder.getContext().getAuthentication() == null);
-  }
+        assertTrue(result);
+        assertTrue(SecurityContextHolder.getContext().getAuthentication() == null);
+    }
 
-  /**
-   * Test behavior when the Authorization header is missing during the WebSocket handshake.
-   */
-  @Test
-  void testBeforeHandshake_withoutAuthorizationHeader_shouldProceedWithoutAuth() throws Exception {
-    HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-    when(servletRequest.getHeader("Authorization")).thenReturn(null);
+    /**
+     * Test behavior when the Authorization header is missing during the WebSocket handshake.
+     */
+    @Test
+    void testBeforeHandshake_withoutAuthorizationHeader_shouldProceedWithoutAuth () throws Exception {
+        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
+        when(servletRequest.getHeader("Authorization")).thenReturn(null);
 
-    ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
-    Map<String, Object> attributes = new HashMap<>();
+        ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+        Map<String, Object> attributes = new HashMap<>();
 
-    boolean result = interceptor.beforeHandshake(request, null, mock(WebSocketHandler.class), attributes);
+        boolean result = interceptor.beforeHandshake(request , null , mock(WebSocketHandler.class) , attributes);
 
-    assertTrue(result);
-  }
+        assertTrue(result);
+    }
 }
 ```
 
@@ -1554,13 +1561,10 @@ public class WebSocketJwtInterceptorTest {
 ```java
 package com.example.supportservice.controller;
 
-import com.example.supportservice.dto.LoginRequest;
-import com.example.supportservice.dto.RegisterRequest;
-import com.example.supportservice.dto.UserDto;
-import com.example.supportservice.enums.Role;
-import com.example.supportservice.model.User;
-import com.example.supportservice.repository.UserRepository;
-import com.example.supportservice.utils.JwtUtil;
+import com.mycompany.useraccess.enums.Role;
+import com.mycompany.useraccess.model.User;
+import com.mycompany.useraccess.repository.UserRepository;
+import com.mycompany.useraccess.utils.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -1599,115 +1603,115 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional // Rollback DB changes after each test
 public class AuthControllerIntegrationTest {
 
-  @Configuration
-  static class TestConfig {
-    @Bean
-    public ObjectMapper objectMapper() {
-      return new ObjectMapper();
+    @Configuration
+    static class TestConfig {
+        @Bean
+        public ObjectMapper objectMapper () {
+            return new ObjectMapper();
+        }
     }
-  }
 
-  @Autowired
-  private MockMvc mockMvc;
-  @Autowired
-  private ObjectMapper objectMapper;
-  @Autowired
-  private UserRepository userRepository;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private UserRepository userRepository;
 
-  @MockBean
-  private AuthenticationManager authenticationManager;
-  @MockBean
-  private JwtUtil jwtUtil;
+    @MockBean
+    private AuthenticationManager authenticationManager;
+    @MockBean
+    private JwtUtil jwtUtil;
 
-  /**
-   * Test user registration.
-   * Verifies if the user registration process is working as expected.
-   */
-  @Order(1)
-  @Test
-  void testRegisterUser() throws Exception {
-    RegisterRequest request = new RegisterRequest("john", "john@example.com", "pass123", Role.ADMIN.toString());
+    /**
+     * Test user registration.
+     * Verifies if the user registration process is working as expected.
+     */
+    @Order(1)
+    @Test
+    void testRegisterUser () throws Exception {
+        RegisterRequest request = new RegisterRequest("john" , "john@example.com" , "pass123" , Role.ADMIN.toString());
 
-    mockMvc.perform(post("/api/auth/register")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(content().string(org.hamcrest.Matchers.containsString("User registered with ID:")));
-  }
+        mockMvc.perform(post("/api/auth/register")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk())
+               .andExpect(content().string(org.hamcrest.Matchers.containsString("User registered with ID:")));
+    }
 
-  /**
-   * Test user login.
-   * Verifies that a valid login attempt generates a token.
-   */
-  @Order(2)
-  @Test
-  void testLoginUser() throws Exception {
-    LoginRequest request = new LoginRequest("john@example.com", "pass123");
+    /**
+     * Test user login.
+     * Verifies that a valid login attempt generates a token.
+     */
+    @Order(2)
+    @Test
+    void testLoginUser () throws Exception {
+        LoginRequest request = new LoginRequest("john@example.com" , "pass123");
 
-    // Mock token and user
-    String token = "mock-token";
-    User mockUser = User.builder()
-            .email("john@example.com")
-            .username("john")
-            .enabled(true)
-            .role(Role.ADMIN)
-            .build();
+        // Mock token and user
+        String token = "mock-token";
+        User mockUser = User.builder()
+                            .email("john@example.com")
+                            .username("john")
+                            .enabled(true)
+                            .role(Role.ADMIN)
+                            .build();
 
-    when(jwtUtil.generateToken(any(), any())).thenReturn(token);
-    userRepository.save(mockUser);
+        when(jwtUtil.generateToken(any() , any())).thenReturn(token);
+        userRepository.save(mockUser);
 
-    mockMvc.perform(post("/api/auth/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.token").value("mock-token"))
-            .andExpect(jsonPath("$.email").value("john@example.com"));
-  }
+        mockMvc.perform(post("/api/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.token").value("mock-token"))
+               .andExpect(jsonPath("$.email").value("john@example.com"));
+    }
 
-  /**
-   * Test fetching the logged-in user's profile.
-   * Verifies that the user profile endpoint returns correct information.
-   */
-  @Order(3)
-  @Test
-  @WithMockUser(username = "john@example.com", roles = {"ADMIN"})
-  void testProfileEndpoint() throws Exception {
-    userRepository.save(User.builder()
-            .username("john")
-            .email("john@example.com")
-            .enabled(true)
-            .role(Role.ADMIN)
-            .build());
+    /**
+     * Test fetching the logged-in user's profile.
+     * Verifies that the user profile endpoint returns correct information.
+     */
+    @Order(3)
+    @Test
+    @WithMockUser(username = "john@example.com", roles = {"ADMIN"})
+    void testProfileEndpoint () throws Exception {
+        userRepository.save(User.builder()
+                                .username("john")
+                                .email("john@example.com")
+                                .enabled(true)
+                                .role(Role.ADMIN)
+                                .build());
 
-    mockMvc.perform(get("/api/auth/profile"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("john@example.com"));
-  }
+        mockMvc.perform(get("/api/auth/profile"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.email").value("john@example.com"));
+    }
 
-  /**
-   * Test updating the logged-in user's profile.
-   * Verifies that the profile update functionality works as expected.
-   */
-  @Order(4)
-  @Test
-  @WithMockUser(username = "john@example.com", roles = {"ADMIN"})
-  void testUpdateProfile() throws Exception {
-    userRepository.save(User.builder()
-            .username("john")
-            .email("john@example.com")
-            .enabled(true)
-            .role(Role.ADMIN)
-            .build());
+    /**
+     * Test updating the logged-in user's profile.
+     * Verifies that the profile update functionality works as expected.
+     */
+    @Order(4)
+    @Test
+    @WithMockUser(username = "john@example.com", roles = {"ADMIN"})
+    void testUpdateProfile () throws Exception {
+        userRepository.save(User.builder()
+                                .username("john")
+                                .email("john@example.com")
+                                .enabled(true)
+                                .role(Role.ADMIN)
+                                .build());
 
-    UserDto update = new UserDto();
-    update.setUsername("newJohn");
+        UserDto update = new UserDto();
+        update.setUsername("newJohn");
 
-    mockMvc.perform(put("/api/auth/profile")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(update)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.username").value("newJohn"));
-  }
+        mockMvc.perform(put("/api/auth/profile")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(update)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.username").value("newJohn"));
+    }
 }
 ```
 
@@ -1893,12 +1897,12 @@ package com.example.supportservice.controller;
 
 import com.example.supportservice.dto.TicketRequest;
 import com.example.supportservice.enums.Priority;
-import com.example.supportservice.enums.Role;
+import com.mycompany.useraccess.enums.Role;
 import com.example.supportservice.enums.TicketStatus;
 import com.example.supportservice.model.Ticket;
-import com.example.supportservice.model.User;
+import com.mycompany.useraccess.model.User;
 import com.example.supportservice.repository.TicketRepository;
-import com.example.supportservice.repository.UserRepository;
+import com.mycompany.useraccess.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.MethodOrderer;
@@ -1935,188 +1939,188 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TicketControllerIntegrationTest {
 
-  @Autowired
-  private MockMvc mockMvc;
-  @Autowired
-  private ObjectMapper objectMapper;
-  @Autowired
-  private TicketRepository ticketRepository;
-  @Autowired
-  private UserRepository userRepository;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private TicketRepository ticketRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-  private static Long createdTicketId;
+    private static Long createdTicketId;
 
-  /**
-   * Test creating a ticket.
-   * Verifies that the ticket creation endpoint works as expected.
-   */
-  @Order(1)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testCreateTicket() throws Exception {
-    TicketRequest request = new TicketRequest();
-    request.setSubject("Login Issue");
-    request.setDescription("User cannot login.");
-    request.setPriority(Priority.MEDIUM);
+    /**
+     * Test creating a ticket.
+     * Verifies that the ticket creation endpoint works as expected.
+     */
+    @Order(1)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testCreateTicket () throws Exception {
+        TicketRequest request = new TicketRequest();
+        request.setSubject("Login Issue");
+        request.setDescription("User cannot login.");
+        request.setPriority(Priority.MEDIUM);
 
-    mockMvc.perform(post("/api/tickets")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.subject").value("Login Issue"));
+        mockMvc.perform(post("/api/tickets")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isCreated())
+               .andExpect(jsonPath("$.subject").value("Login Issue"));
 
-    // Capture ticket ID for next tests
-    List<Ticket> tickets = ticketRepository.findAll();
-    createdTicketId = tickets.get(0).getId();
-  }
+        // Capture ticket ID for next tests
+        List<Ticket> tickets = ticketRepository.findAll();
+        createdTicketId = tickets.get(0).getId();
+    }
 
-  /**
-   * Test fetching a ticket by ID.
-   * Verifies that the correct ticket is returned for the given ID.
-   */
-  @Order(2)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testGetTicketById() throws Exception {
-    Ticket ticket = new Ticket();
-    ticket.setSubject("Sample Ticket");
-    ticket.setDescription("Just for testing");
-    ticket.setPriority(Priority.MEDIUM);
-    ticket = ticketRepository.save(ticket);
+    /**
+     * Test fetching a ticket by ID.
+     * Verifies that the correct ticket is returned for the given ID.
+     */
+    @Order(2)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testGetTicketById () throws Exception {
+        Ticket ticket = new Ticket();
+        ticket.setSubject("Sample Ticket");
+        ticket.setDescription("Just for testing");
+        ticket.setPriority(Priority.MEDIUM);
+        ticket = ticketRepository.save(ticket);
 
-    mockMvc.perform(get("/api/tickets/" + ticket.getId()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.subject").value("Sample Ticket"));
-  }
+        mockMvc.perform(get("/api/tickets/" + ticket.getId()))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.subject").value("Sample Ticket"));
+    }
 
-  /**
-   * Test uploading a ticket attachment.
-   * Verifies that the attachment is uploaded successfully.
-   */
-  @Order(3)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testUploadAttachment() throws Exception {
-    Ticket ticket = ticketRepository.save(Ticket.builder()
-            .subject("With Attachment")
-            .description("Testing file upload")
-            .priority(Priority.MEDIUM)
-            .build());
+    /**
+     * Test uploading a ticket attachment.
+     * Verifies that the attachment is uploaded successfully.
+     */
+    @Order(3)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testUploadAttachment () throws Exception {
+        Ticket ticket = ticketRepository.save(Ticket.builder()
+                                                    .subject("With Attachment")
+                                                    .description("Testing file upload")
+                                                    .priority(Priority.MEDIUM)
+                                                    .build());
 
-    MockMultipartFile file = new MockMultipartFile(
-            "file", "example.txt", "text/plain", "This is a test".getBytes());
+        MockMultipartFile file = new MockMultipartFile(
+                "file" , "example.txt" , "text/plain" , "This is a test".getBytes());
 
-    mockMvc.perform(multipart("/api/tickets/" + ticket.getId() + "/attachments")
-                    .file(file))
-            .andExpect(status().isOk())
-            .andExpect(content().string(containsString("uploaded successfully")));
-  }
+        mockMvc.perform(multipart("/api/tickets/" + ticket.getId() + "/attachments")
+                                .file(file))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("uploaded successfully")));
+    }
 
-  /**
-   * Test updating a ticket.
-   * Verifies that the ticket is updated correctly.
-   */
-  @Order(4)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testUpdateTicket() throws Exception {
-    Ticket ticket = ticketRepository.save(Ticket.builder()
-            .subject("Old Title")
-            .description("Old Desc")
-            .priority(Priority.LOW)
-            .status(TicketStatus.OPEN)  // ✅ add this line
-            .build());
+    /**
+     * Test updating a ticket.
+     * Verifies that the ticket is updated correctly.
+     */
+    @Order(4)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testUpdateTicket () throws Exception {
+        Ticket ticket = ticketRepository.save(Ticket.builder()
+                                                    .subject("Old Title")
+                                                    .description("Old Desc")
+                                                    .priority(Priority.LOW)
+                                                    .status(TicketStatus.OPEN)  // ✅ add this line
+                                                    .build());
 
-    TicketRequest updateRequest = new TicketRequest();
-    updateRequest.setSubject("Updated Title");
-    updateRequest.setDescription("Updated Desc");
-    updateRequest.setPriority(Priority.HIGH);
+        TicketRequest updateRequest = new TicketRequest();
+        updateRequest.setSubject("Updated Title");
+        updateRequest.setDescription("Updated Desc");
+        updateRequest.setPriority(Priority.HIGH);
 
-    mockMvc.perform(put("/api/tickets/" + ticket.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updateRequest)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.subject").value("Updated Title"));
-  }
+        mockMvc.perform(put("/api/tickets/" + ticket.getId())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.subject").value("Updated Title"));
+    }
 
-  /**
-   * Test listing all tickets.
-   * Verifies that the ticket listing endpoint works correctly.
-   */
-  @Order(5)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testListAllTickets() throws Exception {
-    ticketRepository.save(Ticket.builder()
-            .subject("List Ticket")
-            .description("Check list")
-            .priority(Priority.LOW)
-            .build());
+    /**
+     * Test listing all tickets.
+     * Verifies that the ticket listing endpoint works correctly.
+     */
+    @Order(5)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testListAllTickets () throws Exception {
+        ticketRepository.save(Ticket.builder()
+                                    .subject("List Ticket")
+                                    .description("Check list")
+                                    .priority(Priority.LOW)
+                                    .build());
 
-    mockMvc.perform(get("/api/tickets"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
-  }
+        mockMvc.perform(get("/api/tickets"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$").isArray());
+    }
 
-  /**
-   * Test assigning a ticket to an agent.
-   * Verifies that the ticket is correctly assigned to an agent.
-   */
-  @Order(6)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testAssignTicketToAgent() throws Exception {
-    // Insert agent user
-    User agent = userRepository.save(User.builder()
+    /**
+     * Test assigning a ticket to an agent.
+     * Verifies that the ticket is correctly assigned to an agent.
+     */
+    @Order(6)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testAssignTicketToAgent () throws Exception {
+        // Insert agent user
+        User agent = userRepository.save(User.builder()
 //                                             .id(101L) // Optional; let DB auto-generate if ID is auto
-            .email("agent@example.com")
-            .username("agent101")
-            .role(Role.AGENT)
-            .enabled(true)
-            .build());
+                                             .email("agent@example.com")
+                                             .username("agent101")
+                                             .role(Role.AGENT)
+                                             .enabled(true)
+                                             .build());
 
-    // Save ticket
-    Ticket ticket = ticketRepository.save(Ticket.builder()
-            .subject("To Assign")
-            .description("Assign test")
-            .priority(Priority.MEDIUM)
-            .status(TicketStatus.OPEN) // avoid null status
-            .build());
+        // Save ticket
+        Ticket ticket = ticketRepository.save(Ticket.builder()
+                                                    .subject("To Assign")
+                                                    .description("Assign test")
+                                                    .priority(Priority.MEDIUM)
+                                                    .status(TicketStatus.OPEN) // avoid null status
+                                                    .build());
 
-    mockMvc.perform(post("/api/tickets/" + ticket.getId() + "/assign")
-                    .param("agentId", String.valueOf(agent.getId())))
-            .andExpect(status().isOk())
-            .andExpect(content().string(containsString("assigned to agent ID")));
-  }
+        mockMvc.perform(post("/api/tickets/" + ticket.getId() + "/assign")
+                                .param("agentId" , String.valueOf(agent.getId())))
+               .andExpect(status().isOk())
+               .andExpect(content().string(containsString("assigned to agent ID")));
+    }
 
-  /**
-   * Test auto-assigning a ticket.
-   * Verifies that a ticket is automatically assigned to an agent.
-   */
-  @Order(7)
-  @Test
-  @WithMockUser(username = "admin", roles = {"ADMIN"})
-  void testAutoAssignTicket() throws Exception {
-    // Insert agent
-    User agent = userRepository.save(User.builder()
-            .email("agent@example.com")
-            .username("agent_auto")
-            .role(Role.AGENT)
-            .enabled(true)
-            .build());
+    /**
+     * Test auto-assigning a ticket.
+     * Verifies that a ticket is automatically assigned to an agent.
+     */
+    @Order(7)
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testAutoAssignTicket () throws Exception {
+        // Insert agent
+        User agent = userRepository.save(User.builder()
+                                             .email("agent@example.com")
+                                             .username("agent_auto")
+                                             .role(Role.AGENT)
+                                             .enabled(true)
+                                             .build());
 
-    // Create ticket
-    Ticket ticket = ticketRepository.save(Ticket.builder()
-            .subject("Auto Assign")
-            .description("Auto assign test")
-            .priority(Priority.MEDIUM)
-            .status(TicketStatus.OPEN)
-            .build());
+        // Create ticket
+        Ticket ticket = ticketRepository.save(Ticket.builder()
+                                                    .subject("Auto Assign")
+                                                    .description("Auto assign test")
+                                                    .priority(Priority.MEDIUM)
+                                                    .status(TicketStatus.OPEN)
+                                                    .build());
 
-    mockMvc.perform(post("/api/tickets/" + ticket.getId() + "/auto-assign"))
-            .andExpect(status().isOk())
-            .andExpect(content().string(org.hamcrest.Matchers.containsString("auto-assigned to agent ID")));
-  }
+        mockMvc.perform(post("/api/tickets/" + ticket.getId() + "/auto-assign"))
+               .andExpect(status().isOk())
+               .andExpect(content().string(org.hamcrest.Matchers.containsString("auto-assigned to agent ID")));
+    }
 }
 ```
 
@@ -2518,6 +2522,8 @@ public class TicketResponseTest {
 ```java
 package com.example.supportservice.exception;
 
+import com.mycompany.useraccess.exception.GlobalExceptionHandler;
+import com.mycompany.useraccess.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -2553,7 +2559,7 @@ class GlobalExceptionHandlerTest {
    * Initializes the `GlobalExceptionHandler` and mocks a web request before each test.
    */
   @BeforeEach
-  void setUp() {
+  void setUp () {
     handler = new GlobalExceptionHandler();
     mockRequest = mock(WebRequest.class);
     when(mockRequest.getDescription(false)).thenReturn("uri=/api/test");
@@ -2564,14 +2570,14 @@ class GlobalExceptionHandlerTest {
    * Verifies that the exception is correctly handled and the response contains the appropriate status and message.
    */
   @Test
-  void testHandleResourceNotFoundException() {
+  void testHandleResourceNotFoundException () {
     ResourceNotFoundException ex = new ResourceNotFoundException("Resource not found");
 
-    ResponseEntity<Map<String, Object>> response = handler.handleDoctorAlreadyExistsException(ex, mockRequest);
+    ResponseEntity<Map<String, Object>> response = handler.handleDoctorAlreadyExistsException(ex , mockRequest);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    assertThat(response.getBody()).containsEntry("message", "Resource not found");
-    assertThat(response.getBody()).containsEntry("path", "uri=/api/test");
+    assertThat(response.getBody()).containsEntry("message" , "Resource not found");
+    assertThat(response.getBody()).containsEntry("path" , "uri=/api/test");
   }
 
   /**
@@ -2579,13 +2585,13 @@ class GlobalExceptionHandlerTest {
    * Verifies that the exception is handled properly and the response status is FORBIDDEN.
    */
   @Test
-  void testHandleAccessDeniedException() {
+  void testHandleAccessDeniedException () {
     Exception ex = new AccessDeniedException("Not authorized");
 
-    ResponseEntity<Map<String, Object>> response = handler.handleAccessDeniedException(ex, mockRequest);
+    ResponseEntity<Map<String, Object>> response = handler.handleAccessDeniedException(ex , mockRequest);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-    assertThat(response.getBody()).containsEntry("message", "Access Denied: Not authorized");
+    assertThat(response.getBody()).containsEntry("message" , "Access Denied: Not authorized");
   }
 
   /**
@@ -2593,14 +2599,14 @@ class GlobalExceptionHandlerTest {
    * Verifies that the exception results in the correct response body and status.
    */
   @Test
-  void testHandleHttpClientErrorException() {
+  void testHandleHttpClientErrorException () {
     HttpClientErrorException ex = HttpClientErrorException.create(
-            HttpStatus.BAD_REQUEST, "Bad Request", null, null, null);
+            HttpStatus.BAD_REQUEST , "Bad Request" , null , null , null);
 
-    ResponseEntity<Map<String, Object>> response = handler.handleHttpClientErrorException(ex, mockRequest);
+    ResponseEntity<Map<String, Object>> response = handler.handleHttpClientErrorException(ex , mockRequest);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    assertThat(response.getBody()).containsEntry("status", 400);
+    assertThat(response.getBody()).containsEntry("status" , 400);
   }
 
   /**
@@ -2608,14 +2614,14 @@ class GlobalExceptionHandlerTest {
    * Verifies that the exception is handled correctly, setting the status as INTERNAL_SERVER_ERROR.
    */
   @Test
-  void testHandleHttpServerErrorException() {
+  void testHandleHttpServerErrorException () {
     HttpServerErrorException ex = HttpServerErrorException.create(
-            HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", null, null, null);
+            HttpStatus.INTERNAL_SERVER_ERROR , "Internal Server Error" , null , null , null);
 
-    ResponseEntity<Map<String, Object>> response = handler.handleHttpServerErrorException(ex, mockRequest);
+    ResponseEntity<Map<String, Object>> response = handler.handleHttpServerErrorException(ex , mockRequest);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    assertThat(response.getBody()).containsEntry("error", "Internal Server Error");
+    assertThat(response.getBody()).containsEntry("error" , "Internal Server Error");
   }
 
   /**
@@ -2623,7 +2629,7 @@ class GlobalExceptionHandlerTest {
    * Verifies that the exception results in a NOT_FOUND status with a meaningful message.
    */
   @Test
-  void testHandleTicketNotFoundException() {
+  void testHandleTicketNotFoundException () {
     TicketNotFoundException ex = new TicketNotFoundException("Ticket with ID not found");
 
     ResponseEntity<String> response = handler.handleTicketNotFound(ex);
@@ -2832,9 +2838,10 @@ class ChatServiceTest {
 ```java
 package com.example.supportservice.service;
 
-import com.example.supportservice.enums.Role;
-import com.example.supportservice.model.User;
-import com.example.supportservice.repository.UserRepository;
+import com.mycompany.useraccess.enums.Role;
+import com.mycompany.useraccess.model.User;
+import com.mycompany.useraccess.repository.UserRepository;
+import com.mycompany.useraccess.service.CustomUserDetailsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -2859,57 +2866,57 @@ import static org.mockito.Mockito.*;
  */
 class CustomUserDetailsServiceTest {
 
-  private UserRepository userRepository;
-  private CustomUserDetailsService userDetailsService;
+    private UserRepository userRepository;
+    private CustomUserDetailsService userDetailsService;
 
-  /**
-   * Sets up mocks for `UserRepository` and initializes `CustomUserDetailsService` before each test.
-   */
-  @BeforeEach
-  void setup() {
-    userRepository = mock(UserRepository.class);
-    userDetailsService = new CustomUserDetailsService();
-    userDetailsService.userRepository = userRepository; // field injection for test
-  }
+    /**
+     * Sets up mocks for `UserRepository` and initializes `CustomUserDetailsService` before each test.
+     */
+    @BeforeEach
+    void setup () {
+        userRepository = mock(UserRepository.class);
+        userDetailsService = new CustomUserDetailsService();
+        userDetailsService.userRepository = userRepository; // field injection for test
+    }
 
-  /**
-   * Verifies that the `loadUserByUsername` method returns correct user details.
-   * Ensures that the service interacts with the `UserRepository` and returns expected user data.
-   */
-  @Test
-  void loadUserByUsername_ReturnsUserDetails_WhenUserExists() {
-    User user = User.builder()
-            .id(1L)
-            .email("test@example.com")
-            .password("encodedPass")
-            .enabled(true)
-            .role(Role.ADMIN)
-            .build();
+    /**
+     * Verifies that the `loadUserByUsername` method returns correct user details.
+     * Ensures that the service interacts with the `UserRepository` and returns expected user data.
+     */
+    @Test
+    void loadUserByUsername_ReturnsUserDetails_WhenUserExists () {
+        User user = User.builder()
+                        .id(1L)
+                        .email("test@example.com")
+                        .password("encodedPass")
+                        .enabled(true)
+                        .role(Role.ADMIN)
+                        .build();
 
-    when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
 
-    UserDetails userDetails = userDetailsService.loadUserByUsername("test@example.com");
+        UserDetails userDetails = userDetailsService.loadUserByUsername("test@example.com");
 
-    assertThat(userDetails).isNotNull();
-    assertThat(userDetails.getUsername()).isEqualTo("test@example.com");
-    assertThat(userDetails.getPassword()).isEqualTo("encodedPass");
-    assertThat(userDetails.getAuthorities().stream().findFirst().get().getAuthority()).isEqualTo("ROLE_ADMIN");
+        assertThat(userDetails).isNotNull();
+        assertThat(userDetails.getUsername()).isEqualTo("test@example.com");
+        assertThat(userDetails.getPassword()).isEqualTo("encodedPass");
+        assertThat(userDetails.getAuthorities().stream().findFirst().get().getAuthority()).isEqualTo("ROLE_ADMIN");
 
-    verify(userRepository, times(1)).findByEmail("test@example.com");
-  }
+        verify(userRepository , times(1)).findByEmail("test@example.com");
+    }
 
-  /**
-   * Verifies that `UsernameNotFoundException` is thrown when the user does not exist.
-   */
-  @Test
-  void loadUserByUsername_ThrowsException_WhenUserNotFound() {
-    when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+    /**
+     * Verifies that `UsernameNotFoundException` is thrown when the user does not exist.
+     */
+    @Test
+    void loadUserByUsername_ThrowsException_WhenUserNotFound () {
+        when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
-    assertThrows(UsernameNotFoundException.class, () ->
-            userDetailsService.loadUserByUsername("notfound@example.com"));
+        assertThrows(UsernameNotFoundException.class , () ->
+                userDetailsService.loadUserByUsername("notfound@example.com"));
 
-    verify(userRepository, times(1)).findByEmail("notfound@example.com");
-  }
+        verify(userRepository , times(1)).findByEmail("notfound@example.com");
+    }
 }
 ```
 
@@ -2920,7 +2927,8 @@ class CustomUserDetailsServiceTest {
 ```java
 package com.example.supportservice.service;
 
-import com.example.supportservice.utils.JwtUtil;
+import com.mycompany.useraccess.service.JwtService;
+import com.mycompany.useraccess.utils.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -2941,70 +2949,70 @@ import static org.mockito.Mockito.*;
  */
 class JwtServiceTest {
 
-  private JwtUtil jwtUtil;
-  private JwtService jwtService;
+    private JwtUtil jwtUtil;
+    private JwtService jwtService;
 
-  /**
-   * Initializes the mock `JwtUtil` and `JwtService` before each test.
-   */
-  @BeforeEach
-  void setUp() {
-    jwtUtil = Mockito.mock(JwtUtil.class);
-    jwtService = new JwtService(jwtUtil);
-  }
+    /**
+     * Initializes the mock `JwtUtil` and `JwtService` before each test.
+     */
+    @BeforeEach
+    void setUp () {
+        jwtUtil = Mockito.mock(JwtUtil.class);
+        jwtService = new JwtService(jwtUtil);
+    }
 
-  /**
-   * Verifies that the token is validated correctly.
-   * Ensures that `JwtUtil.validateToken` is called and returns the correct result.
-   */
-  @Test
-  void testValidateToken() {
-    String token = "valid-token";
-    String username = "john@example.com";
+    /**
+     * Verifies that the token is validated correctly.
+     * Ensures that `JwtUtil.validateToken` is called and returns the correct result.
+     */
+    @Test
+    void testValidateToken () {
+        String token = "valid-token";
+        String username = "john@example.com";
 
-    when(jwtUtil.validateToken(token, username)).thenReturn(true);
+        when(jwtUtil.validateToken(token , username)).thenReturn(true);
 
-    boolean result = jwtService.validateToken(token, username);
+        boolean result = jwtService.validateToken(token , username);
 
-    assertThat(result).isTrue();
-    verify(jwtUtil, times(1)).validateToken(token, username);
-  }
+        assertThat(result).isTrue();
+        verify(jwtUtil , times(1)).validateToken(token , username);
+    }
 
-  /**
-   * Verifies that the username is correctly extracted from the token.
-   * Ensures that `JwtUtil.extractUsername` is called and returns the correct username.
-   */
-  @Test
-  void testExtractUsername() {
-    String token = "mock-token";
-    when(jwtUtil.extractUsername(token)).thenReturn("john@example.com");
+    /**
+     * Verifies that the username is correctly extracted from the token.
+     * Ensures that `JwtUtil.extractUsername` is called and returns the correct username.
+     */
+    @Test
+    void testExtractUsername () {
+        String token = "mock-token";
+        when(jwtUtil.extractUsername(token)).thenReturn("john@example.com");
 
-    String username = jwtService.extractUsername(token);
+        String username = jwtService.extractUsername(token);
 
-    assertThat(username).isEqualTo("john@example.com");
-    verify(jwtUtil, times(1)).extractUsername(token);
-  }
+        assertThat(username).isEqualTo("john@example.com");
+        verify(jwtUtil , times(1)).extractUsername(token);
+    }
 
-  /**
-   * Verifies that the token is valid if it matches the username and is not expired.
-   * Ensures that `JwtUtil.isTokenExpired` and `JwtUtil.extractUsername` are correctly called.
-   */
-  @Test
-  void testIsTokenValid() {
-    String token = "mock-token";
-    String username = "john@example.com";
+    /**
+     * Verifies that the token is valid if it matches the username and is not expired.
+     * Ensures that `JwtUtil.isTokenExpired` and `JwtUtil.extractUsername` are correctly called.
+     */
+    @Test
+    void testIsTokenValid () {
+        String token = "mock-token";
+        String username = "john@example.com";
 
-    UserDetails userDetails = mock(UserDetails.class);
-    when(userDetails.getUsername()).thenReturn(username);
-    when(jwtUtil.extractUsername(token)).thenReturn(username);
-    when(jwtUtil.isTokenExpired(token)).thenReturn(false);
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userDetails.getUsername()).thenReturn(username);
+        when(jwtUtil.extractUsername(token)).thenReturn(username);
+        when(jwtUtil.isTokenExpired(token)).thenReturn(false);
 
-    boolean isValid = jwtService.isTokenValid(token, userDetails);
+        boolean isValid = jwtService.isTokenValid(token , userDetails);
 
-    assertThat(isValid).isTrue();
-    verify(jwtUtil).extractUsername(token);
-    verify(jwtUtil).isTokenExpired(token);
-  }
+        assertThat(isValid).isTrue();
+        verify(jwtUtil).extractUsername(token);
+        verify(jwtUtil).isTokenExpired(token);
+    }
 }
 ```
 
@@ -3016,6 +3024,7 @@ class JwtServiceTest {
 ```java
 package com.example.supportservice.utils;
 
+import com.mycompany.useraccess.utils.JwtUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -3034,28 +3043,28 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class JwtUtilTest {
 
-  private final JwtUtil jwtUtil = new JwtUtil();
+    private final JwtUtil jwtUtil = new JwtUtil();
 
-  /**
-   * Verifies the generation and validation of a JWT token.
-   * Ensures that a valid token is generated, validated, and the username can be extracted.
-   */
-  @Test
-  public void testGenerateAndValidateToken() {
-    String email = "test@example.com";
+    /**
+     * Verifies the generation and validation of a JWT token.
+     * Ensures that a valid token is generated, validated, and the username can be extracted.
+     */
+    @Test
+    public void testGenerateAndValidateToken () {
+        String email = "test@example.com";
 
-    // Generate a JWT token using the email as the subject
-    String token = jwtUtil.generateToken(email, Map.of());
+        // Generate a JWT token using the email as the subject
+        String token = jwtUtil.generateToken(email , Map.of());
 
-    // Ensure that the token is not null
-    assertNotNull(token);
+        // Ensure that the token is not null
+        assertNotNull(token);
 
-    // Validate the token and check if the email matches the one stored in the token
-    assertTrue(jwtUtil.validateToken(token, email));
+        // Validate the token and check if the email matches the one stored in the token
+        assertTrue(jwtUtil.validateToken(token , email));
 
-    // Extract the username from the token and verify that it matches the original email
-    assertEquals(email, jwtUtil.extractUsername(token));
-  }
+        // Extract the username from the token and verify that it matches the original email
+        assertEquals(email , jwtUtil.extractUsername(token));
+    }
 }
 ```
 
