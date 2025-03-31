@@ -12,25 +12,32 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+
 /**
- * 🧩 Strategy for registering the first SUPER_ADMIN user
- * Used when setting up the system for the first time.
+ * Strategy for registering SUPER_ADMIN users under the HOSPITAL application.
+ *
+ * <p><strong>Rules:</strong></p>
+ * <ul>
+ *     <li>Allows initial setup without authentication.</li>
+ *     <li>Caps active SUPER_ADMIN count to 5 for safety.</li>
+ *     <li>Auto-enables the SUPER_ADMIN upon registration.</li>
+ * </ul>
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class HospitalAdminStrategy implements RegistrationStrategy {
+    /**
+     * Maximum number of active SUPER_ADMINs allowed at a time.
+     */
+    private static final int SUPER_ADMIN_THRESHOLD = 5;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
     /**
-     * This strategy supports only HOSPITAL app type and ADMIN role.
-     *
-     * @param appType the application context (e.g., HOSPITAL)
-     * @param role    the role requested for registration
-     * @return true if appType is HOSPITAL and role is ADMIN
+     * This strategy applies to HOSPITAL applications for SUPER_ADMIN role only.
      */
     @Override
     public boolean supports(AppType appType, Role role) {
@@ -39,59 +46,53 @@ public class HospitalAdminStrategy implements RegistrationStrategy {
 
     /**
      * Handles registration of a SUPER_ADMIN user.
-     * <p>
-     * - If no users exist, allows creation of the first SUPER_ADMIN without authentication.
-     * - If users exist, only authenticated SUPER_ADMINs can register another SUPER_ADMIN.
-     * - Ensures no more than 5 active SUPER_ADMINs exist at a time.
      *
      * @param dto the registration request DTO containing user details
      * @return RegistrationResponseDTO indicating success or failure
      */
-
-    private static final int SUPER_ADMIN_THRESHOLD = 5;
     @Override
     public RegistrationResponseDTO register(RegistrationRequestDTO dto) {
+        // Get count of currently active (enabled) SUPER_ADMIN users
         long totalSuperAdmins = userRepository.countByRoleAndEnabledTrue(Role.SUPER_ADMIN);
 
-        // ⛔ If limit reached, block new active super admin
-        //  ❌ Rejecting new registrations when active SUPER_ADMINs reach threshold
+        // If the number of active super admins reaches the threshold, block the request
         if (totalSuperAdmins >= SUPER_ADMIN_THRESHOLD) {
             log.warn("⛔ SUPER_ADMIN limit reached: {} active users", totalSuperAdmins);
-            return new RegistrationResponseDTO("Maximum limit of SUPER_ADMIN users reached. Please deactivate one before adding new.", false);
+            return new RegistrationResponseDTO(
+                    "Maximum limit of SUPER_ADMIN users reached. Please deactivate one before adding new.",
+                    false
+            );
         }
 
-        // 🧠 Allow only first user to auto-register without authentication
+        // Check if this is the first ever user being registered
         boolean isFirstUser = userRepository.count() == 0;
-        Role assignedRole = isFirstUser ? Role.SUPER_ADMIN : dto.getRole();
 
-
-//        if (!isFirstUser && assignedRole != Role.SUPER_ADMIN) {
-//            log.warn("❌ Only SUPER_ADMIN can register other SUPER_ADMINs (unless it's the first user)");
-//            return new RegistrationResponseDTO("Only SUPER_ADMIN can register other SUPER_ADMINs.", false);
-//        }
-
+        // Always register SUPER_ADMIN regardless of what was passed in the request
+        // In real scenarios, we may want to assert dto.getRole() == SUPER_ADMIN here
         User user = User.builder()
                         .username(dto.getUsername())
                         .email(dto.getEmail())
-                        .password(passwordEncoder.encode(dto.getPassword()))
+                        .password(passwordEncoder.encode(dto.getPassword())) // Securely hash the password
                         .phone(dto.getPhone())
                         .address(dto.getAddress())
                         .role(Role.SUPER_ADMIN)
-                        .enabled(true)
-                        .superAdmin(true)
+                        .enabled(true)          // Immediately enable SUPER_ADMIN
+                        .superAdmin(true)       // Mark as a super admin for internal reference
                         .build();
 
+        // Persist user to the database
         userRepository.save(user);
 
         log.info("✅ SUPER_ADMIN [{}] registered successfully", user.getEmail());
 
+        // Send optional verification email (can be removed if not needed)
         try {
-            emailService.sendVerificationEmail(user); // optional
+            emailService.sendVerificationEmail(user);
         } catch (Exception e) {
             log.error("⚠️ Email notification failed for SUPER_ADMIN: {}", e.getMessage());
         }
 
+        // Return success response
         return new RegistrationResponseDTO("SUPER_ADMIN registered successfully", true);
     }
-
 }

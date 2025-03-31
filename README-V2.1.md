@@ -1115,7 +1115,6 @@ import com.mycompany.useraccess.model.User;
 import com.example.supportservice.repository.TicketRepository;
 import com.mycompany.useraccess.repository.UserRepository;
 import com.mycompany.useraccess.service.EmailService;
-import com.mycompany.useraccess.utils.FileStorageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -1142,167 +1141,167 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class TicketService {
 
-  private final TicketRepository ticketRepository;
-  private final FileStorageUtil fileStorageUtil;
-  private final UserRepository userRepository;
-  private final EmailService emailService;
+    private final TicketRepository ticketRepository;
+    private final FileStorageUtil fileStorageUtil;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
-  /**
-   * Creates a new support ticket.
-   *
-   * @param request The ticket request containing details about the ticket.
-   * @return The created ticket response.
-   */
-  public TicketResponse createTicket ( TicketRequest request ) {
-    log.info("Creating new ticket with subject: {}" , request.getSubject());
+    /**
+     * Creates a new support ticket.
+     *
+     * @param request The ticket request containing details about the ticket.
+     * @return The created ticket response.
+     */
+    public TicketResponse createTicket ( TicketRequest request ) {
+        log.info("Creating new ticket with subject: {}" , request.getSubject());
 
-    Ticket ticket = Ticket.builder()
-                          .subject(request.getSubject())
-                          .description(request.getDescription())
-                          .priority(request.getPriority())
-                          .status(TicketStatus.OPEN)
-                          .createdAt(LocalDateTime.now())
-                          .updatedAt(LocalDateTime.now())
-                          .build();
+        Ticket ticket = Ticket.builder()
+                              .subject(request.getSubject())
+                              .description(request.getDescription())
+                              .priority(request.getPriority())
+                              .status(TicketStatus.OPEN)
+                              .createdAt(LocalDateTime.now())
+                              .updatedAt(LocalDateTime.now())
+                              .build();
 
-    ticketRepository.save(ticket);
+        ticketRepository.save(ticket);
 
-    // Send notification
-    emailService.sendTicketCreatedNotification(ticket);
+        // Send notification
+        emailService.sendTicketCreatedNotification(ticket);
 
-    return TicketResponse.from(ticket);
-  }
-
-  /**
-   * Fetches a ticket by its ID.
-   *
-   * @param id The ID of the ticket.
-   * @return The ticket response.
-   */
-  public TicketResponse getTicketById ( Long id ) {
-    log.info("Fetching ticket with ID: {}" , id);
-
-    Ticket ticket = ticketRepository.findById(id)
-                                    .orElseThrow(
-                                            () -> new TicketNotFoundException("Ticket not found with ID: " + id));
-    return TicketResponse.from(ticket);
-  }
-
-  /**
-   * Uploads an attachment to a ticket.
-   *
-   * @param ticketId The ID of the ticket to attach the file to.
-   * @param file     The file to be uploaded.
-   */
-  public void saveAttachment ( Long ticketId , MultipartFile file ) {
-    log.info("Uploading attachment for ticket ID: {}" , ticketId);
-
-    Ticket ticket = ticketRepository.findById(ticketId)
-                                    .orElseThrow(() -> new TicketNotFoundException(
-                                            "Ticket not found with ID " + ticketId));
-
-    String fileUrl = fileStorageUtil.save(file);
-
-    Attachment attachment = Attachment.builder()
-                                      .fileName(file.getOriginalFilename())
-                                      .fileType(file.getContentType())
-                                      .fileUrl(fileUrl)
-                                      .ticket(ticket)
-                                      .build();
-
-    ticket.getAttachments().add(attachment);
-    ticketRepository.save(ticket);
-    log.info("Attachment uploaded successfully.");
-  }
-
-  /**
-   * Updates the details of an existing ticket.
-   *
-   * @param id      The ID of the ticket to be updated.
-   * @param request The updated ticket request.
-   * @return The updated ticket response.
-   */
-  public TicketResponse updateTicket ( Long id , TicketRequest request ) {
-    Ticket ticket = ticketRepository.findById(id)
-                                    .orElseThrow(
-                                            () -> new TicketNotFoundException("Ticket not found with ID " + id));
-
-    log.info("Updating ticket ID: {}" , id);
-
-    TicketStatus oldStatus = ticket.getStatus();
-
-    ticket.setSubject(request.getSubject());
-    ticket.setDescription(request.getDescription());
-    ticket.setPriority(request.getPriority());
-    ticket.setAssignedTo(request.getAssignedTo());
-    ticket.setStatus(request.getStatus());
-    ticket.setUpdatedAt(LocalDateTime.now());
-
-    ticketRepository.save(ticket);
-
-    // Send notification if status changed
-    if (!oldStatus.equals(ticket.getStatus())) {
-      emailService.sendTicketStatusChangedNotification(ticket , oldStatus);
+        return TicketResponse.from(ticket);
     }
 
-    return TicketResponse.from(ticket);
-  }
+    /**
+     * Fetches a ticket by its ID.
+     *
+     * @param id The ID of the ticket.
+     * @return The ticket response.
+     */
+    public TicketResponse getTicketById ( Long id ) {
+        log.info("Fetching ticket with ID: {}" , id);
 
-  /**
-   * Retrieves all tickets sorted by creation date in descending order.
-   *
-   * @return A list of ticket responses.
-   */
-  public List<Ticket> getAllTickets () {
-    log.info("Fetching all tickets");
-    return ticketRepository.findAll(Sort.by(Sort.Direction.DESC , "createdAt"));
-  }
-
-  /**
-   * Manually assigns a ticket to a specific agent.
-   *
-   * @param ticketId The ID of the ticket to be assigned.
-   * @param agentId  The ID of the agent to assign the ticket to.
-   */
-  public void assignTicketToAgent ( Long ticketId , Long agentId ) {
-    Ticket ticket = ticketRepository.findById(ticketId)
-                                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
-    User agent = userRepository.findById(agentId)
-                               .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
-
-    if (agent.getRole() != Role.AGENT) {
-      throw new IllegalArgumentException("User is not an agent");
+        Ticket ticket = ticketRepository.findById(id)
+                                        .orElseThrow(
+                                                () -> new TicketNotFoundException("Ticket not found with ID: " + id));
+        return TicketResponse.from(ticket);
     }
 
-    log.info("Assigning ticket ID {} to agent ID {}" , ticketId , agentId);
-    ticket.setAssignedAgent(agent);
-    ticket.setUpdatedAt(LocalDateTime.now());
-    ticketRepository.save(ticket);
+    /**
+     * Uploads an attachment to a ticket.
+     *
+     * @param ticketId The ID of the ticket to attach the file to.
+     * @param file     The file to be uploaded.
+     */
+    public void saveAttachment ( Long ticketId , MultipartFile file ) {
+        log.info("Uploading attachment for ticket ID: {}" , ticketId);
 
-    emailService.sendTicketAssignedNotification(ticket , agent);
-  }
+        Ticket ticket = ticketRepository.findById(ticketId)
+                                        .orElseThrow(() -> new TicketNotFoundException(
+                                                "Ticket not found with ID " + ticketId));
 
-  /**
-   * Auto-assigns a ticket to a random available agent.
-   *
-   * @param ticketId The ID of the ticket to be assigned.
-   * @return The ID of the assigned agent.
-   */
-  public Long autoAssignAgent ( Long ticketId ) {
-    List<User> agents = userRepository.findByRole(Role.AGENT);
+        String fileUrl = fileStorageUtil.save(file);
 
-    if (agents.isEmpty()) {
-      log.warn("No agents available for auto-assignment");
-      throw new RuntimeException("No agents available for assignment");
+        Attachment attachment = Attachment.builder()
+                                          .fileName(file.getOriginalFilename())
+                                          .fileType(file.getContentType())
+                                          .fileUrl(fileUrl)
+                                          .ticket(ticket)
+                                          .build();
+
+        ticket.getAttachments().add(attachment);
+        ticketRepository.save(ticket);
+        log.info("Attachment uploaded successfully.");
     }
 
-    User chosen = agents.get(new Random().nextInt(agents.size()));
+    /**
+     * Updates the details of an existing ticket.
+     *
+     * @param id      The ID of the ticket to be updated.
+     * @param request The updated ticket request.
+     * @return The updated ticket response.
+     */
+    public TicketResponse updateTicket ( Long id , TicketRequest request ) {
+        Ticket ticket = ticketRepository.findById(id)
+                                        .orElseThrow(
+                                                () -> new TicketNotFoundException("Ticket not found with ID " + id));
 
-    log.info("Auto-assigning ticket {} to agent {}" , ticketId , chosen.getEmail());
-    assignTicketToAgent(ticketId , chosen.getId());
+        log.info("Updating ticket ID: {}" , id);
 
-    return chosen.getId();
-  }
+        TicketStatus oldStatus = ticket.getStatus();
+
+        ticket.setSubject(request.getSubject());
+        ticket.setDescription(request.getDescription());
+        ticket.setPriority(request.getPriority());
+        ticket.setAssignedTo(request.getAssignedTo());
+        ticket.setStatus(request.getStatus());
+        ticket.setUpdatedAt(LocalDateTime.now());
+
+        ticketRepository.save(ticket);
+
+        // Send notification if status changed
+        if (!oldStatus.equals(ticket.getStatus())) {
+            emailService.sendTicketStatusChangedNotification(ticket , oldStatus);
+        }
+
+        return TicketResponse.from(ticket);
+    }
+
+    /**
+     * Retrieves all tickets sorted by creation date in descending order.
+     *
+     * @return A list of ticket responses.
+     */
+    public List<Ticket> getAllTickets () {
+        log.info("Fetching all tickets");
+        return ticketRepository.findAll(Sort.by(Sort.Direction.DESC , "createdAt"));
+    }
+
+    /**
+     * Manually assigns a ticket to a specific agent.
+     *
+     * @param ticketId The ID of the ticket to be assigned.
+     * @param agentId  The ID of the agent to assign the ticket to.
+     */
+    public void assignTicketToAgent ( Long ticketId , Long agentId ) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                                        .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+        User agent = userRepository.findById(agentId)
+                                   .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
+
+        if (agent.getRole() != Role.AGENT) {
+            throw new IllegalArgumentException("User is not an agent");
+        }
+
+        log.info("Assigning ticket ID {} to agent ID {}" , ticketId , agentId);
+        ticket.setAssignedAgent(agent);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticketRepository.save(ticket);
+
+        emailService.sendTicketAssignedNotification(ticket , agent);
+    }
+
+    /**
+     * Auto-assigns a ticket to a random available agent.
+     *
+     * @param ticketId The ID of the ticket to be assigned.
+     * @return The ID of the assigned agent.
+     */
+    public Long autoAssignAgent ( Long ticketId ) {
+        List<User> agents = userRepository.findByRole(Role.AGENT);
+
+        if (agents.isEmpty()) {
+            log.warn("No agents available for auto-assignment");
+            throw new RuntimeException("No agents available for assignment");
+        }
+
+        User chosen = agents.get(new Random().nextInt(agents.size()));
+
+        log.info("Auto-assigning ticket {} to agent {}" , ticketId , chosen.getEmail());
+        assignTicketToAgent(ticketId , chosen.getId());
+
+        return chosen.getId();
+    }
 }
 ```
 
