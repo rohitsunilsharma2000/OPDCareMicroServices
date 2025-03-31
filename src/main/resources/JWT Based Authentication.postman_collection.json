@@ -1,0 +1,474 @@
+{
+	"info": {
+		"_postman_id": "aa064681-e98b-4549-86e9-1d8ead76a600",
+		"name": "JWT Based Authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "37581217",
+		"_collection_link": "https://intership-8198.postman.co/workspace/intership-Workspace~aae241b0-c5c8-4ef9-bd0f-664f46665995/collection/37581217-aa064681-e98b-4549-86e9-1d8ead76a600?action=share&source=collection_link&creator=37581217"
+	},
+	"item": [
+		{
+			"name": "1. First User Becomes SuperAdmin (No Token Needed)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"superadmin\",\n    \"email\": \"superadmin@hospital.com\",\n    \"password\": \"SuperSecure123!\",\n    \"phone\": \"1234567890\",\n    \"address\": \"1 Admin Plaza, Main Hospital\",\n    \"role\": \"SUPER_ADMIN\",\n    \"appType\": \"HOSPITAL\"\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/register/setup"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Generate Token via /api/login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"token\", jsonData.token);",
+							"    console.log(\"Token saved: \" + jsonData.token);",
+							"} else {",
+							"    console.error(\"Login failed\");",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"superadmin\",\n    \"password\": \"SuperSecure123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/login"
+			},
+			"response": []
+		},
+		{
+			"name": "3.SUPER_ADMIN Creates a Doctor (Requires Auth Token or Session)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"dr.strange\",\n    \"email\": \"dr.strange@hospital.com\",\n    \"password\": \"DoctorPass@123\",\n    \"phone\": \"9998887777\",\n    \"specialization\": \"Surgery\",\n    \"role\": \"DOCTOR\",\n    \"appType\": \"HOSPITAL\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/register"
+			},
+			"response": []
+		},
+		{
+			"name": "4.SUPER_ADMIN Creates a RECEPTIONIST (Requires Auth Token or Session)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"recep.tina\",\n    \"email\": \"receptionist@hospital.com\",\n    \"password\": \"RecepPass@123\",\n    \"phone\": \"1234567890\",\n    \"role\": \"RECEPTIONIST\",\n    \"appType\": \"HOSPITAL\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/register"
+			},
+			"response": []
+		},
+		{
+			"name": "5.Get Pending Users Only",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/admin/users?approved=false",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"admin",
+						"users"
+					],
+					"query": [
+						{
+							"key": "approved",
+							"value": "false"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5.Get Approved Users Only",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/admin/users?approved=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"admin",
+						"users"
+					],
+					"query": [
+						{
+							"key": "approved",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6.Approve a User",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/admin/approve-user/5"
+			},
+			"response": []
+		},
+		{
+			"name": "7.Disable a User",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/admin/disable-user/3"
+			},
+			"response": []
+		},
+		{
+			"name": "8.Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/admin/users"
+			},
+			"response": []
+		},
+		{
+			"name": "9.Login RECEPTIONIST",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"token\", jsonData.token);",
+							"    console.log(\"Token saved: \" + jsonData.token);",
+							"} else {",
+							"    console.error(\"Login failed\");",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"recep.tina\",\n    \"password\": \"RecepPass@123\"\n}\n\n\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/login"
+			},
+			"response": []
+		},
+		{
+			"name": "9.Login DOCTOR",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    const jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"token\", jsonData.token);",
+							"    console.log(\"Token saved: \" + jsonData.token);",
+							"} else {",
+							"    console.error(\"Login failed\");",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"dr.strange\",\n    \"password\": \"DoctorPass@123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/login"
+			},
+			"response": []
+		},
+		{
+			"name": "❌ 10. DOCTOR Attempts to Register a RECEPTIONIST – Should be denied (403)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"reception\",\n    \"email\": \"recep@hospital.com\",\n    \"password\": \"Recep123\",\n    \"phone\": \"1234567890\",\n    \"role\": \"RECEPTIONIST\",\n    \"appType\": \"HOSPITAL\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/register"
+			},
+			"response": []
+		},
+		{
+			"name": "❌ 11. RECEPTIONIST Attempts to Register a RECEPTIONIST – Should be denied (403)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"dr.nospec\",\n    \"email\": \"nospec@hospital.com\",\n    \"password\": \"NoSpec123\",\n    \"phone\": \"4445556666\",\n    \"role\": \"DOCTOR\",\n    \"appType\": \"HOSPITAL\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/api/register"
+			},
+			"response": []
+		},
+		{
+			"name": "Doctor Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/doctor/dashboard"
+			},
+			"response": []
+		},
+		{
+			"name": "Nurse Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/nurse/dashboard"
+			},
+			"response": []
+		},
+		{
+			"name": "Receptionist Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/receptionist/dashboard"
+			},
+			"response": []
+		},
+		{
+			"name": "Patient Dashboard",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": "http://localhost:8080/api/patient/dashboard"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
